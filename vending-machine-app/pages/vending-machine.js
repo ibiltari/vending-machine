@@ -15,11 +15,17 @@ const VendingMachine = ()  => {
     const [address, setAddress] = useState(null)
     const [vmContract, setVmContract] = useState(null)
     const [purchases, setPurchases] = useState(0)
+    const [balance, setBalance] = useState(null)
+    const [owner, setOwner] = useState(null)
+    const [addstockcount, setAddstockcount] = useState(0)
     const [WithdrawlAllLog, setWithdrawlAllLog] = useState(null)
     
     useEffect(() => {
         if (vmContract) getInventoryHandler()
         if (vmContract && address) getMyDonutCountHandler()
+        if (vmContract && address == owner) getBalanceHandler()
+        if (vmContract) getOwnerHandler()       
+    }, [vmContract, address, owner])
         if (vmContract) getWithdrawlAllLogHandler()
          
     }, [vmContract, address])
@@ -70,6 +76,41 @@ const VendingMachine = ()  => {
     const updateDonutCuantity = event => {
         setBuyCount(event.target.value)
     }
+    const getOwnerHandler = async () => {
+        const owner = await vmContract.methods.owner().call()
+        setOwner(owner)
+    }
+
+    const getBalanceHandler = async () => {
+        try {
+            const balance = await vmContract.methods.getVendingMachineValance().call({from: address})
+            setBalance(web3.utils.fromWei(balance))
+        }catch (e) {
+            setError(address)
+        }
+        
+    }
+
+    const withdrawAllHandler = async () => {
+        try {
+            await vmContract.methods.withdrawAll().send({
+                from: address
+            })
+            setSuccessMsg("Withdraw done")
+            if (vmContract && address == owner) getBalanceHandler()
+        } catch (e) {
+            setError(e.message)
+        }
+
+    }
+
+    const updateDonutCuantity = event => {
+        setBuyCount(event.target.value)
+    }
+
+    const updateStockCuantity = event => {
+        setAddstockcount(event.target.value)
+    }
     
     const buyDonutHandler = async () => {
         try {
@@ -81,8 +122,22 @@ const VendingMachine = ()  => {
             setSuccessMsg(`${buyCount} donuts purchased`)
             if (vmContract) getInventoryHandler()
             if (vmContract && address) getMyDonutCountHandler()
+            if (vmContract && address == owner) getBalanceHandler()
+        } catch (e) { 
+            setError(e.message)
+        }
+        
+    }
 
-        } catch (e) {
+    const IncreaseStockHandler = async () => {
+        try {
+
+            await vmContract.methods.restock(addstockcount).send({
+                from: address
+            })
+            setSuccessMsg(`${addstockcount} stock added`)
+            if (vmContract) getInventoryHandler()
+        } catch (e) { 
             setError(e.message)
         }
         
@@ -151,6 +206,31 @@ const VendingMachine = ()  => {
             </nav>
             <section>
                 <div className="container">
+                    <h2>
+                        {address == null ? "Account not connected" : address == owner ? "You are owner" : "You are not owner"}
+
+                    </h2>
+
+                </div>
+            </section>
+            
+            <section>
+                <div className="container">
+                    <h2>Vending machine balance: {balance} ETH</h2>
+
+                </div>
+            </section>
+            <section className="mt-5">
+                <div className="container">
+                    <div className="field">
+                        <label className="label"></label>
+                        <button onClick={withdrawAllHandler} className="button is-primary mt-2">Withdraw All</button>
+                    </div>
+
+                </div>
+            </section>
+            <section>
+                <div className="container">
                     <h2>Vending machine inventory: {inventory}</h2>
 
                 </div>
@@ -169,6 +249,21 @@ const VendingMachine = ()  => {
                             <input onChange={updateDonutCuantity} type="type" className="input" placeholder="Enter amount"/>
                         </div>
                         <button onClick={buyDonutHandler} className="button is-primary mt-2">Buy</button>
+
+
+
+                    </div>
+
+                </div>
+            </section>
+            <section className="mt-5">
+                <div className="container">
+                    <div className="field">
+                        <label className="label"></label>
+                        <div className="control">
+                            <input onChange={updateStockCuantity} type="type" className="input" placeholder="Enter amount"/>
+                        </div>
+                        <button onClick={IncreaseStockHandler} className="button is-primary mt-2">Add stock</button>
 
 
 
