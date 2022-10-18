@@ -25,10 +25,9 @@ const VendingMachine = ()  => {
         if (vmContract && address) getMyDonutCountHandler()
         if (vmContract && address == owner) getBalanceHandler()
         if (vmContract) getOwnerHandler()       
-    }, [vmContract, address, owner])
         if (vmContract) getWithdrawlAllLogHandler()
          
-    }, [vmContract, address])
+    }, [vmContract, address, owner])
 
     // const web3log = new Web3("wss://eth-goerli.g.alchemy.com/v2/po-05dWR7t98fqrLTHCk9qmBr1dNqW8_")
 
@@ -102,10 +101,6 @@ const VendingMachine = ()  => {
             setError(e.message)
         }
 
-    }
-
-    const updateDonutCuantity = event => {
-        setBuyCount(event.target.value)
     }
 
     const updateStockCuantity = event => {
